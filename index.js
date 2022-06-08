@@ -3,7 +3,7 @@ addEventListener("fetch", (event) => {
 });
 
 async function handleRequest(request) {
-  return new Response("Is this automated?!", {
+  return new Response("Did this PR automate the build?!", {
     headers: { "content-type": "text/plain" },
   });
 }
