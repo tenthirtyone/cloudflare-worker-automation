@@ -7,7 +7,7 @@
  * first colon in a user-pass string separates user and password.
  */
 const ADMIN_USER = "admin";
-const ADMIN_PASS = "TruffleShuffleLikeIts1985";
+const ADMIN_PASS = process.env.ADMIN_PASS;
 // April 06 2022, the date this worker was created
 const EPOCH = 1649217600000;
 const SALT =
