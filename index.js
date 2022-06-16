@@ -52,11 +52,11 @@ async function handleNameQuery(event, name) {
       `Response for request url: ${request.url} not present in cache. Fetching and caching request.`
     );
     try {
-      const package = await fetch("https://registry.npmjs.org/" + name).then(
+      const pkg = await fetch("https://registry.npmjs.org/" + name).then(
         (response) => response.json()
       );
-      if (typeof package === "object" && "dist-tags" in package) {
-        const distTags = package["dist-tags"];
+      if (typeof pkg === "object" && "dist-tags" in pkg) {
+        const distTags = pkg["dist-tags"];
         if (
           typeof distTags === "object" &&
           "latest" in distTags &&
@@ -148,36 +148,35 @@ async function handleDashboardQuery(event) {
     const keys = value.keys;
     let earliest = Infinity;
     let latest = -Infinity;
-    const packages = {};
+    const pkgs = {};
     keys.forEach(({ name: key }) => {
       const [name, ip, timestamp] = key.split("|");
-      const package =
-        packages[name] ||
-        (packages[name] = {
+      const pkg =
+        pkgs[name] ||
+        (pkgs[name] = {
           max: -Infinity,
           earliest: Infinity,
           latest: -Infinity,
         });
       const date = new Date(EPOCH + +timestamp);
       date.setHours(0, 0, 0, 0); // set to midnight UTC
-      const pingsOnDay = package[+date] || (package[+date] = 0);
-      package[+date]++;
-      package["earliest"] =
-        date < package["earliest"] ? +date : package["earliest"];
-      package["latest"] = date > package["latest"] ? +date : package["latest"];
-      package["max"] = date > package["max"] ? package[+date] : package["max"];
+      const pingsOnDay = pkg[+date] || (pkg[+date] = 0);
+      pkg[+date]++;
+      pkg["earliest"] = date < pkg["earliest"] ? +date : pkg["earliest"];
+      pkg["latest"] = date > pkg["latest"] ? +date : pkg["latest"];
+      pkg["max"] = date > pkg["max"] ? pkg[+date] : pkg["max"];
     });
-    for (const name in packages) {
-      const package = packages[name];
-      const max = package["max"];
-      const earliest = package["earliest"];
+    for (const name in pkgs) {
+      const pkg = pkgs[name];
+      const max = pkg["max"];
+      const earliest = pkg["earliest"];
       const numDays =
-        Math.round((package["latest"] - earliest) / (1000 * 60 * 60 * 24)) + 1;
+        Math.round((pkg["latest"] - earliest) / (1000 * 60 * 60 * 24)) + 1;
       const rows = Array.from(Array(numDays)).map((_, i) => {
         const date = new Date(earliest).setDate(
           new Date(earliest).getDate() + i
         );
-        const count = package[+date] || 0;
+        const count = pkg[+date] || 0;
         const progress =
           "<progress value=" +
           count +
