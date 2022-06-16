@@ -1,3 +1,7 @@
 name = "cloudflare-worker-automation"
 compatibility_date = "2022-06-08"
 main = "index.js"
+
+kv_namespaces = [
+  { binding = "VERSION_KV", preview_id = "4dce1cce3c7ceed083d5fb983dc81b66", id = "2c5b42658d8240229be0922a9c7354ee" }
+]
