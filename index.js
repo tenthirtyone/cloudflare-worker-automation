@@ -7,7 +7,7 @@
  * first colon in a user-pass string separates user and password.
  */
 const ADMIN_USER = "admin";
-const ADMIN_PASS = await ADMIN_KV.get("pass");
+let ADMIN_PASS;
 // April 06 2022, the date this worker was created
 const EPOCH = 1649217600000;
 const SALT =
@@ -287,7 +287,8 @@ async function handleRequest(event) {
  * @param {string} pass
  * @throws {UnauthorizedException}
  */
-function verifyCredentials(user, pass) {
+async function verifyCredentials(user, pass) {
+  ADMIN_PASS = await ADMIN_KV.get("pass");
   if (ADMIN_USER !== user) {
     throw new UnauthorizedException("Invalid username.");
   }
