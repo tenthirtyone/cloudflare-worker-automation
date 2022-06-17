@@ -56,9 +56,3 @@ Returns the list of stored keys for VERSION_KV.
 `/key`
 
 Returns specific data collected for the `?key` param.
-
-## Contributing
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/
