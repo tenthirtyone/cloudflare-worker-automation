@@ -8,6 +8,10 @@ export const RESPONSE_INTERNAL_SERVER_ERROR = {
   statusText: "Internal Server Error",
 };
 
+export const RESPONSE_AUTH_ERROR = {
+  status: 401,
+};
+
 export const RESPONSE_CACHE_300 = {
   status: 200,
   headers: {
