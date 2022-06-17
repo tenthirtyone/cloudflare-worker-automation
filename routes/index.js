@@ -26,14 +26,6 @@ export async function requestRouter(event) {
     return await authenticateRoute(request, await epochRoute());
   }
 
-  /*
-
-  } else if (typeof key === "string") {
-    return await handleKeyQuery(event, key);
-  } else {
-    
-  }
-*/
   return new Response("400 Bad Request", {
     status: 400,
     statusText: "Bad Request",
