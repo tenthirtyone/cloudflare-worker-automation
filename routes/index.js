@@ -1,33 +1,22 @@
-import { authenticateRoute } from "./middleware";
+import { authenticateRequest } from "./middleware";
 import { packageVersionRoute } from "./public";
 import { dashboardRoute, keysRoute, keyRoute, epochRoute } from "./private";
+import { RESPONSE_BAD_REQUEST } from "../constants";
 
-export async function requestRouter(event) {
-  const request = event.request;
-
+export async function requestRouter(request) {
   const { pathname } = new URL(request.url);
-  /*
-  const dashboard = searchParams.get("dashboard");
-  const key = searchParams.get("key");
-  const keys = searchParams.get("keys");
-  const epoch = searchParams.get("epoch");
-*/
-  console.log(pathname);
 
   if (pathname === "/version") {
-    return await packageVersionRoute(event);
+    return await packageVersionRoute(request);
   } else if (pathname === "/dashboard") {
-    return await authenticateRoute(request, await dashboardRoute());
+    return await authenticateRequest(request, await dashboardRoute());
   } else if (pathname === "/keys") {
-    return await authenticateRoute(request, await keysRoute());
+    return await authenticateRequest(request, await keysRoute());
   } else if (pathname === "/key") {
-    return await authenticateRoute(request, await keyRoute(event));
+    return await authenticateRequest(request, await keyRoute(request));
   } else if (pathname === "/epoch") {
-    return await authenticateRoute(request, await epochRoute());
+    return await authenticateRequest(request, await epochRoute());
   }
 
-  return new Response("400 Bad Request", {
-    status: 400,
-    statusText: "Bad Request",
-  });
+  return new Response("400 Bad Request", RESPONSE_BAD_REQUEST);
 }

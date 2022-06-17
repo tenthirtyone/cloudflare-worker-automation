@@ -1,4 +1,4 @@
-import { EPOCH } from "../../constants";
+import { EPOCH, RESPONSE_COMPRESS_HTML_NOCACHE } from "../../constants";
 
 export async function dashboardRoute() {
   let body = "";
@@ -71,16 +71,6 @@ export async function dashboardRoute() {
    </body>
    </html>
    `,
-    {
-      status: 200,
-      headers: {
-        // compress the response using gzip
-        "Content-Encoding": "gzip",
-        // tell the browser it is json
-        "Content-Type": "text/html",
-        // don't ever store this because it is private infos
-        "Cache-Control": "no-store",
-      },
-    }
+    RESPONSE_COMPRESS_HTML_NOCACHE
   );
 }

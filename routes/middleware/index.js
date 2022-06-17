@@ -1,3 +1,3 @@
-import { authenticateRoute } from "./authenticateRoute";
+import { authenticateRequest } from "./authenticateRequest";
 
-export { authenticateRoute };
+export { authenticateRequest };

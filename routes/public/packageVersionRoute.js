@@ -1,17 +1,19 @@
 import { buf2hex } from "../../util";
-import { EPOCH, SALT } from "../../constants";
+import {
+  EPOCH,
+  SALT,
+  RESPONSE_BAD_REQUEST,
+  RESPONSE_CACHE_300,
+  RESPONSE_INTERNAL_SERVER_ERROR,
+} from "../../constants";
 
-export async function packageVersionRoute(event) {
-  const request = event.request;
+export async function packageVersionRoute(request) {
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
   const knownPackages = ["ganache", "truffle"];
 
   if (knownPackages.indexOf(name) === -1) {
-    return new Response("400 Bad Request", {
-      status: 400,
-      statusText: "Bad Request",
-    });
+    return new Response("400 Bad Request", RESPONSE_BAD_REQUEST);
   }
 
   const ip = request.headers.get("CF-Connecting-IP");
@@ -51,14 +53,7 @@ export async function packageVersionRoute(event) {
           typeof distTags.latest === "string" &&
           distTags.latest !== ""
         ) {
-          response = new Response(distTags.latest);
-
-          // Cache API respects Cache-Control headers. Setting s-max-age to 300
-          // will limit the response to be in cache for 300 seconds max
-          // maxage is for users, s-maxage is for CDNs
-
-          // Any changes made to the response here will be reflected in the cached value
-          response.headers.append("Cache-Control", "max-age=300, s-maxage=300");
+          response = new Response(distTags.latest, RESPONSE_CACHE_300);
 
           // Store the fetched response as cacheKey
           // Use waitUntil so we return the response without blocking on
@@ -71,10 +66,10 @@ export async function packageVersionRoute(event) {
     }
 
     if (!response) {
-      return new Response("500 Internal Server Error", {
-        status: 500,
-        statusText: "Internal Server Error",
-      });
+      return new Response(
+        "500 Internal Server Error",
+        RESPONSE_INTERNAL_SERVER_ERROR
+      );
     }
   } else {
     console.log(`Cache hit for: ${request.url}.`);
