@@ -145,25 +145,3 @@ async function handleDashboardQuery(event) {
   // Not authenticated.
   return makeAuthenticationRequiredResponse();
 }
-
-function makeAuthenticationRequiredResponse() {
-  return new Response("You need to login.", {
-    status: 401,
-    headers: {
-      // Prompts the user for credentials.
-      "WWW-Authenticate": 'Basic realm="my scope", charset="UTF-8"',
-    },
-  });
-}
-
-function UnauthorizedException(reason) {
-  this.status = 401;
-  this.statusText = "Unauthorized";
-  this.reason = reason;
-}
-
-function BadRequestException(reason) {
-  this.status = 400;
-  this.statusText = "Bad Request";
-  this.reason = reason;
-}

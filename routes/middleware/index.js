@@ -1,11 +1,11 @@
-export function isAuthenticated(request) {
-  if (requestIncludesAuthHeader) {
+export function authenticateRoute(request, route) {
+  if (requestIncludesAuthHeader(request)) {
     const { user, pass } = getCredentialsFromRequest(request);
     // throws exception on failure
     verifyRequestCredentials(user, pass);
-    return true;
+    return route;
   }
-  return false;
+  return makeAuthenticationRequiredResponse();
 }
 
 function requestIncludesAuthHeader(request) {
@@ -19,8 +19,9 @@ function requestIncludesAuthHeader(request) {
  * @returns {{ user: string, pass: string }}
  */
 function getCredentialsFromRequest(request) {
+  console.log(request);
   const Authorization = request.headers.get("Authorization");
-
+  console.log(Authorization);
   const [scheme, encoded] = Authorization.split(" ");
 
   // The Authorization header must start with Basic, followed by a space.
@@ -63,4 +64,27 @@ async function verifyRequestCredentials(user, pass) {
   if (ADMIN_PASS !== pass) {
     throw new UnauthorizedException("Invalid password.");
   }
+}
+
+function makeAuthenticationRequiredResponse() {
+  console.log("wtf");
+  return new Response("You need to login.", {
+    status: 401,
+    headers: {
+      // Prompts the user for credentials.
+      "WWW-Authenticate": 'Basic realm="my scope", charset="UTF-8"',
+    },
+  });
+}
+
+function UnauthorizedException(reason) {
+  this.status = 401;
+  this.statusText = "Unauthorized";
+  this.reason = reason;
+}
+
+function BadRequestException(reason) {
+  this.status = 400;
+  this.statusText = "Bad Request";
+  this.reason = reason;
 }

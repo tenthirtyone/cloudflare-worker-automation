@@ -1,5 +1,6 @@
-import { isAuthenticated } from "./middleware";
+import { authenticateRoute } from "./middleware";
 import { packageVersionRoute } from "./public";
+import { dashboardRoute } from "./private";
 const knownPackages = ["ganache", "truffle"];
 
 export async function requestRouter(event) {
@@ -7,7 +8,6 @@ export async function requestRouter(event) {
 
   const { pathname } = new URL(request.url);
   /*
-  const name = searchParams.get("name");
   const dashboard = searchParams.get("dashboard");
   const key = searchParams.get("key");
   const keys = searchParams.get("keys");
@@ -17,10 +17,12 @@ export async function requestRouter(event) {
 
   if (pathname === "/version") {
     return await packageVersionRoute(event);
+  } else if (pathname === "/dashboard") {
+    return authenticateRoute(request, await dashboardRoute(event));
   }
 
   /*else if (dashboard && isAuthenticated(request)) {
-    return await handleDashboardQuery(event);
+    ;
   } else if (keys && isAuthenticated(request)) {
     return await handleKeysQuery(event);
   } else if (epoch && isAuthenticated(request)) {
