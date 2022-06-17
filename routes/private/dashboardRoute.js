@@ -40,37 +40,48 @@ export async function dashboardRoute() {
         ">" +
         count +
         "</progress>";
-      return (
-        "<tr><td>" +
-        new Date(date).toISOString().split("T")[0] +
-        "</td><td>" +
-        progress +
-        "</td><td align=right>" +
-        count +
-        " </td><td>"
-      );
+      return createTableRow(date, progress, count);
     });
-    body +=
-      "<h2>" +
-      name +
-      "</h2><table><thead><tr><th>Date</th><th>Pings</th><th align=right>#</th></tr></thead><tbody>" +
-      rows.join("") +
-      "</tbody></table>";
+    body += createTable(name, rows);
   }
 
-  return new Response(
-    `<!doctype html>
-   <html class="no-js" lang="">
-   
-   <head>
-     <meta charset="utf-8">
-     <title>User Dashboard</title>
-   </head>
-   <body>
-   ${body}
-   </body>
-   </html>
-   `,
-    RESPONSE_COMPRESS_HTML_NOCACHE
+  return new Response(createDashboard(body), RESPONSE_COMPRESS_HTML_NOCACHE);
+}
+
+function createDashboard(body) {
+  const title = "User Dashboard";
+  return `<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <title>${title}</title>
+</head>
+<body>
+${body}
+</body>
+</html>
+`;
+}
+
+function createTable(name, rows) {
+  return (
+    "<h2>" +
+    name +
+    "</h2><table><thead><tr><th>Date</th><th>Pings</th><th align=right>#</th></tr></thead><tbody>" +
+    rows.join("") +
+    "</tbody></table>"
+  );
+}
+
+function createTableRow(date, progress, count) {
+  return (
+    "<tr><td>" +
+    new Date(date).toISOString().split("T")[0] +
+    "</td><td>" +
+    progress +
+    "</td><td align=right>" +
+    count +
+    " </td><td>"
   );
 }
