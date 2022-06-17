@@ -25,14 +25,34 @@ pass:[password for login]
 
 ## Usage
 
-To start in local dev
+To start in local dev:
 
-## Contributing
+```bash
+wrangler dev index.js
+```
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+### Paths
 
-Please make sure to update tests as appropriate.
+`/version?name=ganache`
 
-## License
+Returns the latest version of the `ganache` package from npm.
 
-[MIT](https://choosealicense.com/licenses/mit/
+`/version?name=truffle`
+
+Returns the latest version of the `truffle` package from npm.
+
+`/dashboard`
+
+Returns an summary overview of saved requests.
+
+`/epoch`
+
+Returns the epoch date of the worker.
+
+`/keys`
+
+Returns the list of stored keys for VERSION_KV.
+
+`/key`
+
+Returns specific data collected for the `?key` param.
