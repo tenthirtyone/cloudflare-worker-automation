@@ -5,6 +5,14 @@ export async function packageVersionRoute(event) {
   const request = event.request;
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
+  const knownPackages = ["ganache", "truffle"];
+
+  if (knownPackages.indexOf(name) === -1) {
+    return new Response("400 Bad Request", {
+      status: 400,
+      statusText: "Bad Request",
+    });
+  }
 
   const ip = request.headers.get("CF-Connecting-IP");
   const textEncodedIp = new TextEncoder("utf-8").encode(ip + SALT);

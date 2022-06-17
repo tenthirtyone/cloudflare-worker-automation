@@ -1,9 +1,6 @@
 import { EPOCH } from "../../constants";
 
-export async function dashboardRoute(event) {
-  const request = event.request;
-
-  // Only returns this response when no exception is thrown.
+export async function dashboardRoute() {
   let body = "";
   const value = await VERSION_KV.list();
   const keys = value.keys;
@@ -86,4 +83,42 @@ export async function dashboardRoute(event) {
       },
     }
   );
+}
+
+export async function keysRoute() {
+  const value = await VERSION_KV.list();
+  return new Response(JSON.stringify(value.keys), {
+    status: 200,
+    headers: {
+      // compress the response using gzip
+      "Content-Encoding": "gzip",
+      // tell the browser it is json
+      "Content-Type": "application/json",
+      // don't ever store this because it is private infos
+      "Cache-Control": "no-store",
+    },
+  });
+}
+export async function epochRoute() {
+  return new Response(EPOCH, {
+    // 31536000 is one year in seconds
+    "Cache-Control": "max-age=31536000, s-maxage=31536000",
+  });
+}
+
+export async function keyRoute(event) {
+  const request = event.request;
+  const { searchParams } = new URL(request.url);
+  const key = searchParams.get("key");
+
+  const value = await VERSION_KV.get(key);
+  return new Response(value, {
+    status: 200,
+    headers: {
+      // tell the browser it is json
+      "Content-Type": "application/json",
+      // don't ever store this because it is private infos
+      "Cache-Control": "no-store",
+    },
+  });
 }

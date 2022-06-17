@@ -1,8 +1,10 @@
-export function authenticateRoute(request, route) {
+export async function authenticateRoute(request, route) {
   if (requestIncludesAuthHeader(request)) {
     const { user, pass } = getCredentialsFromRequest(request);
     // throws exception on failure
-    verifyRequestCredentials(user, pass);
+    console.log(user);
+    console.log(pass);
+    await verifyRequestCredentials(user, pass);
     return route;
   }
   return makeAuthenticationRequiredResponse();
@@ -19,9 +21,8 @@ function requestIncludesAuthHeader(request) {
  * @returns {{ user: string, pass: string }}
  */
 function getCredentialsFromRequest(request) {
-  console.log(request);
   const Authorization = request.headers.get("Authorization");
-  console.log(Authorization);
+
   const [scheme, encoded] = Authorization.split(" ");
 
   // The Authorization header must start with Basic, followed by a space.
@@ -56,6 +57,10 @@ function getCredentialsFromRequest(request) {
 async function verifyRequestCredentials(user, pass) {
   const ADMIN_USER = await ADMIN_KV.get("user");
   const ADMIN_PASS = await ADMIN_KV.get("pass");
+
+  console.log("ADMIN_USER");
+  console.log(ADMIN_USER);
+  console.log(ADMIN_PASS);
 
   if (ADMIN_USER !== user) {
     throw new UnauthorizedException("Invalid username.");

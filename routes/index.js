@@ -1,7 +1,6 @@
 import { authenticateRoute } from "./middleware";
 import { packageVersionRoute } from "./public";
-import { dashboardRoute } from "./private";
-const knownPackages = ["ganache", "truffle"];
+import { dashboardRoute, keysRoute, keyRoute, epochRoute } from "./private";
 
 export async function requestRouter(event) {
   const request = event.request;
@@ -18,18 +17,17 @@ export async function requestRouter(event) {
   if (pathname === "/version") {
     return await packageVersionRoute(event);
   } else if (pathname === "/dashboard") {
-    return authenticateRoute(request, await dashboardRoute(event));
+    return await authenticateRoute(request, await dashboardRoute());
+  } else if (pathname === "/keys") {
+    return await authenticateRoute(request, await keysRoute());
+  } else if (pathname === "/key") {
+    return await authenticateRoute(request, await keyRoute(event));
+  } else if (pathname === "/epoch") {
+    return await authenticateRoute(request, await epochRoute());
   }
 
-  /*else if (dashboard && isAuthenticated(request)) {
-    ;
-  } else if (keys && isAuthenticated(request)) {
-    return await handleKeysQuery(event);
-  } else if (epoch && isAuthenticated(request)) {
-    return new Response(EPOCH, {
-      // 31536000 is one year in seconds
-      "Cache-Control": "max-age=31536000, s-maxage=31536000",
-    });
+  /*
+
   } else if (typeof key === "string") {
     return await handleKeyQuery(event, key);
   } else {
