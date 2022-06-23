@@ -1,4 +1,6 @@
 import {
+  ADMIN_USERNAME_KEY,
+  ADMIN_PASSWORD_KEY,
   RESPONSE_AUTH_ERROR,
   RESPONSE_BASIC_LOGIN,
   EXCEPTION_UNAUTHORIZED,
@@ -8,14 +10,19 @@ import {
 export async function authenticateRequest(request, route) {
   if (requestIncludesAuthHeader(request)) {
     try {
-      const { user, pass } = getCredentialsFromRequest(request);
-      await verifyRequestCredentials(user, pass);
+      await loginUser(request);
+
       return route;
     } catch (e) {
       return new Response("Authentication Error", RESPONSE_AUTH_ERROR);
     }
   }
   return makeAuthenticationRequiredResponse();
+}
+
+async function loginUser(request) {
+  const { user, pass } = getCredentialsFromRequest(request);
+  await verifyRequestCredentials(user, pass);
 }
 
 function requestIncludesAuthHeader(request) {
@@ -65,8 +72,8 @@ function validateAndParseCredentials(decoded) {
 }
 
 async function verifyRequestCredentials(user, pass) {
-  const ADMIN_USER = await ADMIN_KV.get("user");
-  const ADMIN_PASS = await ADMIN_KV.get("pass");
+  const ADMIN_USER = await ADMIN_KV.get(ADMIN_USERNAME_KEY);
+  const ADMIN_PASS = await ADMIN_KV.get(ADMIN_PASSWORD_KEY);
 
   if (ADMIN_USER !== user) {
     throw new EXCEPTION_UNAUTHORIZED("Invalid username.");
