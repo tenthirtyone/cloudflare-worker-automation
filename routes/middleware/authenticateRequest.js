@@ -8,31 +8,18 @@ import {
 export async function authenticateRequest(request, route) {
   if (requestIncludesAuthHeader(request)) {
     try {
-      verifyCredentials(request);
+      const { user, pass } = getCredentialsFromRequest(request);
+      await verifyRequestCredentials(user, pass);
+      return route;
     } catch (e) {
       return new Response("Authentication Error", RESPONSE_AUTH_ERROR);
     }
-    return route;
   }
   return makeAuthenticationRequiredResponse();
 }
 
 function requestIncludesAuthHeader(request) {
   return request.headers.has("Authorization");
-}
-
-async function verifyCredentials(request) {
-  const { user, pass } = getCredentialsFromRequest(request);
-  const ADMIN_USER = await ADMIN_KV.get("user");
-  const ADMIN_PASS = await ADMIN_KV.get("pass");
-
-  if (ADMIN_USER !== user) {
-    throw new EXCEPTION_UNAUTHORIZED("Invalid username.");
-  }
-
-  if (ADMIN_PASS !== pass) {
-    throw new EXCEPTION_UNAUTHORIZED("Invalid password.");
-  }
 }
 
 function getCredentialsFromRequest(request) {
@@ -75,6 +62,19 @@ function validateAndParseCredentials(decoded) {
     user: decoded.substring(0, index),
     pass: decoded.substring(index + 1),
   };
+}
+
+async function verifyRequestCredentials(user, pass) {
+  const ADMIN_USER = await ADMIN_KV.get("user");
+  const ADMIN_PASS = await ADMIN_KV.get("pass");
+
+  if (ADMIN_USER !== user) {
+    throw new EXCEPTION_UNAUTHORIZED("Invalid username.");
+  }
+
+  if (ADMIN_PASS !== pass) {
+    throw new EXCEPTION_UNAUTHORIZED("Invalid password.");
+  }
 }
 
 function makeAuthenticationRequiredResponse() {
