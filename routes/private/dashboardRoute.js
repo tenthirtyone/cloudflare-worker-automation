@@ -1,10 +1,19 @@
 import { EPOCH, RESPONSE_COMPRESS_HTML_NOCACHE } from "../../constants";
 
 export async function dashboardRoute() {
-  let body = "";
   const value = await VERSION_KV.list();
   const keys = value.keys;
 
+  const analyticData = parseKVData(keys);
+  const tableHTML = createTableHTML(analyticData);
+
+  return new Response(
+    createDashboard(tableHTML),
+    RESPONSE_COMPRESS_HTML_NOCACHE
+  );
+}
+
+function parseKVData(keys) {
   const pkgs = {};
   keys.forEach(({ name: key }) => {
     const [name, ip, timestamp] = key.split("|");
@@ -17,14 +26,35 @@ export async function dashboardRoute() {
       });
     const date = new Date(EPOCH + +timestamp);
     date.setHours(0, 0, 0, 0); // set to midnight UTC
-    const pingsOnDay = pkg[+date] || (pkg[+date] = 0);
+    pkg[+date] || (pkg[+date] = 0);
     pkg[+date]++;
     pkg["earliest"] = date < pkg["earliest"] ? +date : pkg["earliest"];
     pkg["latest"] = date > pkg["latest"] ? +date : pkg["latest"];
     pkg["max"] = date > pkg["max"] ? pkg[+date] : pkg["max"];
   });
-  for (const name in pkgs) {
-    const pkg = pkgs[name];
+  return pkgs;
+}
+
+function createDashboard(body) {
+  const title = "User Dashboard";
+  return `<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <title>${title}</title>
+</head>
+<body>
+${body}
+</body>
+</html>
+`;
+}
+
+function createTableHTML(analyticData) {
+  let html = "";
+  for (const name in analyticData) {
+    const pkg = analyticData[name];
     const max = pkg["max"];
     const earliest = pkg["earliest"];
     const numDays =
@@ -42,26 +72,9 @@ export async function dashboardRoute() {
         "</progress>";
       return createTableRow(date, progress, count);
     });
-    body += createTable(name, rows);
+    html += createTable(name, rows);
   }
-
-  return new Response(createDashboard(body), RESPONSE_COMPRESS_HTML_NOCACHE);
-}
-
-function createDashboard(body) {
-  const title = "User Dashboard";
-  return `<!doctype html>
-<html class="no-js" lang="">
-
-<head>
-  <meta charset="utf-8">
-  <title>${title}</title>
-</head>
-<body>
-${body}
-</body>
-</html>
-`;
+  return html;
 }
 
 function createTable(name, rows) {
