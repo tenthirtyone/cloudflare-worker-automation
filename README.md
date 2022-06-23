@@ -56,3 +56,7 @@ Returns the list of stored keys for VERSION_KV.
 `/key`
 
 Returns specific data collected for the `?key` param.
+
+`/api/dashboard`
+
+Returns JSON formatted dashboard data in `{ package: "name", timestamp: milliseconds }` format.
