@@ -11,7 +11,6 @@ export async function authenticateRequest(request, route) {
   if (requestIncludesAuthHeader(request)) {
     try {
       await loginUser(request);
-
       return route;
     } catch (e) {
       return new Response("Authentication Error", RESPONSE_AUTH_ERROR);
@@ -31,7 +30,6 @@ function requestIncludesAuthHeader(request) {
 
 function getCredentialsFromRequest(request) {
   const encoded = getEncodedCredentials(request.headers.get("Authorization"));
-
   const { user, pass } = decodeEncodedCredentials(encoded);
 
   return {

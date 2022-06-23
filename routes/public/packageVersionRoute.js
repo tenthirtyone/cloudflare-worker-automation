@@ -15,6 +15,7 @@ export async function packageVersionRoute(request, event) {
   const cache = caches.default;
   const cacheKey = request.url.toString();
 
+  // If the package is not ganache or truffle, eject!
   if (knownPackages.indexOf(name) === -1) {
     return new Response(
       "400 Bad Request - Missing or invalid 'name' param",
@@ -22,8 +23,11 @@ export async function packageVersionRoute(request, event) {
     );
   }
 
+  // URL hit counter
   await trackRequestAnalytics(request, name);
 
+  // This will not work in dev, because Cloudflare edge caching.
+  // Cache survives for 2 hours on the free plan. A-OK for us.
   const cachedResponse = await cache.match(cacheKey);
   if (cachedResponse) {
     console.log(`Cache hit for: ${request.url}.`);
@@ -34,10 +38,12 @@ export async function packageVersionRoute(request, event) {
     `Response for request url: ${request.url} not present in cache. Fetching and caching request.`
   );
 
+  // Kick it over to npm to grab the latest package version
   try {
     const version = await getPackageVersion(name);
     const response = new Response(version, RESPONSE_CACHE_300);
 
+    // Cache the response
     event.waitUntil(cache.put(cacheKey, response.clone()));
     return response;
   } catch (e) {
