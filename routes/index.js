@@ -1,6 +1,7 @@
 import { authenticateRequest } from "./middleware";
 import { packageVersionRoute } from "./public";
 import { dashboardRoute, keysRoute, keyRoute, epochRoute } from "./private";
+import { dashboardData } from "./api";
 import { RESPONSE_BAD_REQUEST } from "../constants";
 
 export async function requestRouter(event) {
@@ -17,6 +18,8 @@ export async function requestRouter(event) {
     return await authenticateRequest(request, await keyRoute(request));
   } else if (pathname === "/epoch") {
     return await authenticateRequest(request, await epochRoute());
+  } else if (pathname === "/api/dashboard") {
+    return await authenticateRequest(request, await dashboardData());
   }
 
   return new Response("400 Bad Request", RESPONSE_BAD_REQUEST);
