@@ -32,8 +32,7 @@ function requestIncludesAuthHeader(request) {
 function getCredentialsFromRequest(request) {
   const encoded = getEncodedCredentials(request.headers.get("Authorization"));
 
-  const decoded = decodeEncodedCredentials(encoded);
-  const { user, pass } = validateAndParseCredentials(decoded);
+  const { user, pass } = decodeEncodedCredentials(encoded);
 
   return {
     user,
@@ -56,10 +55,7 @@ function decodeEncodedCredentials(encoded) {
   const buffer = Uint8Array.from(atob(encoded), (character) =>
     character.charCodeAt(0)
   );
-  return new TextDecoder().decode(buffer).normalize();
-}
-
-function validateAndParseCredentials(decoded) {
+  const decoded = new TextDecoder().decode(buffer).normalize();
   const index = decoded.indexOf(":");
 
   if (index === -1 || /[\0-\x1F\x7F]/.test(decoded)) {
