@@ -17,7 +17,7 @@ export async function authenticateRequest(request, route) {
       return new Response("Authentication Error", RESPONSE_AUTH_ERROR);
     }
   }
-  return makeAuthenticationRequiredResponse();
+  return authenticationRedirectResponse();
 }
 
 async function loginUser(request) {
@@ -84,6 +84,6 @@ async function verifyRequestCredentials(user, pass) {
   }
 }
 
-function makeAuthenticationRequiredResponse() {
+function authenticationRedirectResponse() {
   return new Response("You need to login.", RESPONSE_BASIC_LOGIN);
 }
