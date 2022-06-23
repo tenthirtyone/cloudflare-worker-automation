@@ -5,74 +5,88 @@ import {
   RESPONSE_BAD_REQUEST,
   RESPONSE_CACHE_300,
   RESPONSE_INTERNAL_SERVER_ERROR,
+  EXCEPTION_BAD_REQUEST,
 } from "../../constants";
 
-export async function packageVersionRoute(request) {
+export async function packageVersionRoute(request, event) {
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
   const knownPackages = ["ganache", "truffle"];
+  const cache = caches.default;
+  const cacheKey = request.url.toString();
 
   if (knownPackages.indexOf(name) === -1) {
-    return new Response("400 Bad Request", RESPONSE_BAD_REQUEST);
+    return new Response(
+      "400 Bad Request - Missing or invalid 'name' param",
+      RESPONSE_BAD_REQUEST
+    );
   }
 
-  const ip = request.headers.get("CF-Connecting-IP");
+  await trackRequestAnalytics(request, name);
+
+  const cachedResponse = await cache.match(cacheKey);
+  if (cachedResponse) {
+    console.log(`Cache hit for: ${request.url}.`);
+    return cachedResponse;
+  }
+
+  console.log(
+    `Response for request url: ${request.url} not present in cache. Fetching and caching request.`
+  );
+
+  try {
+    const version = await getPackageVersion(name);
+    const response = new Response(version, RESPONSE_CACHE_300);
+
+    event.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
+  } catch (e) {
+    console.error(e);
+  }
+  return new Response(
+    "500 Internal Server Error",
+    RESPONSE_INTERNAL_SERVER_ERROR
+  );
+}
+
+async function trackRequestAnalytics(request, name) {
+  const key = await createKey(request.headers.get("CF-Connecting-IP"), name);
+  const value = createValue(request);
+  VERSION_KV.put(key, value);
+}
+
+async function createKey(ip, name) {
   const textEncodedIp = new TextEncoder("utf-8").encode(ip + SALT);
   const hashedIp = await crypto.subtle.digest("SHA-256", textEncodedIp);
   // we subtract our EPOCH from the current timestamp to save some space
   // store data in the key format of `name|ip|timestamp`. this lets us filter by package+ip more easily.
-  const key = `${name}|${buf2hex(hashedIp)}|${Date.now() - EPOCH}`;
-  const value = JSON.stringify({
+  return `${name}|${buf2hex(hashedIp)}|${Date.now() - EPOCH}`;
+}
+
+function createValue(request) {
+  return JSON.stringify({
     "User-Agent": request.headers.get("User-Agent"),
     cf: request.cf,
   });
-  VERSION_KV.put(key, value);
+}
 
-  // Construct the cache key from the cache URL
-  const cacheKey = request.url.toString();
-  const cache = caches.default;
+async function getPackageVersion(name) {
+  const registryUrl = `https://registry.npmjs.org/${name}`;
+  const res = await fetch(registryUrl);
+  const data = await res.json();
 
-  // Check whether the value is already available in the cache
-  // if not, we need to fetch it from origin, and store it in the cache
-  // for future access
-  let response = await cache.match(cacheKey);
-
-  if (!response) {
-    console.log(
-      `Response for request url: ${request.url} not present in cache. Fetching and caching request.`
-    );
-    try {
-      const pkg = await fetch("https://registry.npmjs.org/" + name).then(
-        (response) => response.json()
-      );
-      if (typeof pkg === "object" && "dist-tags" in pkg) {
-        const distTags = pkg["dist-tags"];
-        if (
-          typeof distTags === "object" &&
-          "latest" in distTags &&
-          typeof distTags.latest === "string" &&
-          distTags.latest !== ""
-        ) {
-          response = new Response(distTags.latest, RESPONSE_CACHE_300);
-
-          // Store the fetched response as cacheKey
-          // Use waitUntil so we return the response without blocking on
-          // writing to cache
-          event.waitUntil(cache.put(cacheKey, response.clone()));
-        }
-      }
-    } catch (e) {
-      console.error(e);
+  if (typeof data === "object" && "dist-tags" in data) {
+    const distTags = data["dist-tags"];
+    if (
+      typeof distTags === "object" &&
+      "latest" in distTags &&
+      typeof distTags.latest === "string" &&
+      distTags.latest !== ""
+    ) {
+      return distTags.latest;
     }
-
-    if (!response) {
-      return new Response(
-        "500 Internal Server Error",
-        RESPONSE_INTERNAL_SERVER_ERROR
-      );
-    }
-  } else {
-    console.log(`Cache hit for: ${request.url}.`);
   }
-  return response;
+  throw new EXCEPTION_BAD_REQUEST(
+    "Registry URL did not return valid package version."
+  );
 }

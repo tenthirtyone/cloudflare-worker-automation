@@ -1,8 +1,8 @@
 import {
+  RESPONSE_AUTH_ERROR,
   RESPONSE_BASIC_LOGIN,
   EXCEPTION_UNAUTHORIZED,
   EXCEPTION_BAD_REQUEST,
-  RESPONSE_AUTH_ERROR,
 } from "../../constants";
 
 export async function authenticateRequest(request, route) {

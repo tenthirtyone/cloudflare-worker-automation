@@ -3,11 +3,12 @@ import { packageVersionRoute } from "./public";
 import { dashboardRoute, keysRoute, keyRoute, epochRoute } from "./private";
 import { RESPONSE_BAD_REQUEST } from "../constants";
 
-export async function requestRouter(request) {
+export async function requestRouter(event) {
+  const { request } = event;
   const { pathname } = new URL(request.url);
 
   if (pathname === "/version") {
-    return await packageVersionRoute(request);
+    return await packageVersionRoute(request, event);
   } else if (pathname === "/dashboard") {
     return await authenticateRequest(request, await dashboardRoute());
   } else if (pathname === "/keys") {
